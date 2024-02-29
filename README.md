@@ -2,9 +2,9 @@
 
 ## Installation
 
-
+To run this project, you need to have the following prerequisites installed on your machine:
 ```
-python src/train.py task=dog-run
+pip install -r requirements.txt
 ```
 
 ## Training a Physics-informed model
