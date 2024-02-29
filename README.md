@@ -7,33 +7,39 @@ To run this project, you need to have the following prerequisites installed on y
 pip install -r requirements.txt
 ```
 
-## Training a Physics-informed model
+## Training a Physics-Informed Model
 
 <p align="center">
   <img src='media/model_learning2.jpg' width="600"/>
 </p>
 
+Train first, a physics-informed model:
+
 ```
-python src/train.py task=dog-run
+python scripts/train_all_models.py
 ```
 
 
-##  Training an model-free Actor-Critic agent (TD3) 
+##  Training an model-free Actor-Critic agent (TD3) through imagination
 
 <p align="center">
   <img src='media/policy2.jpg' width="600"/>
 </p>
 
+Then, train a model-free agent on the "fake_env" that generate imaginary trajectories with learned model:
+
 ```
-python src/train.py task=dog-run
+python scripts/train_all_policies.py
 ```
 
-##  Hybrid Control 
+
+##  Evaluating PhIHP
 
 <p align="center">
   <img src='media/agent3.jpg' width="600"/>
 </p>
 
+Finally, evaluate PhIHP on the real environment:
 ```
-python src/train.py task=dog-run
+python src/eval_all_phihp.py
 ```
