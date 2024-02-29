@@ -1,8 +1,8 @@
-Pip install torch
-Pip install matplotlib
-Pip install numpy
-Pip install seaborn
-Pip install tqdm
-Pip install gymnasium
-Pip install pandas
-Pip install argparse
+torch
+matplotlib
+numpy
+seaborn
+tqdm
+gymnasium
+pandas
+argparse
