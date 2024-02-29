@@ -1,0 +1,15 @@
+Pip install torch
+Pip install matplotlib
+Pip install numpy
+Pip install seaborn
+Pip install tqdm
+Pip install gymnasium
+Pip install 
+Pip install 
+Pip install 
+Pip install 
+Pip install 
+Pip install 
+Pip install 
+Pip install 
+Pip install 
