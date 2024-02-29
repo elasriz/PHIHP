@@ -41,5 +41,5 @@ python scripts/train_all_policies.py
 
 Finally, evaluate PhIHP on the real environment:
 ```
-python src/eval_all_phihp.py
+python scripts/eval_all_phihp.py
 ```
