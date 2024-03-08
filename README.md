@@ -47,7 +47,9 @@ python scripts/eval_all_phihp.py
 ##  Display Agents
 
 <p align="center">
-  <img src='media/Pendulum-swingup.gif' width="6200"/>
+  <img src='media/Pendulum-swingup.gif' width="200"/>
+  <img src='media/Cartpole.gif' width="200"/>
+  <img src='media/Acrobot-swingup.gif' width="200"/>
 </p>
 
 to display the trained agent:
