@@ -8,7 +8,6 @@ sys.path.append(PARENT_DIR)
 
 
 from display_PHIHP import main as test
-from time import time
 
 
 
