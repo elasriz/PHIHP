@@ -8,9 +8,6 @@ sys.path.append(PARENT_DIR)
 
 
 from eval_PHIHP import main as test
-from time import time
-
-
 
 
 
