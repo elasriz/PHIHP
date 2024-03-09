@@ -8,7 +8,7 @@ sys.path.append(PARENT_DIR)
 
 
 from train_model import main as train
-from time import time
+
 
 
 
