@@ -7,9 +7,8 @@ import matplotlib.pyplot as plt
 
 from source.envs import Observer, plot_trajectories
 from source.models import model_factory
-
 from source.TD3 import TD3, ExplorationNoise
-from source.envs import env_factory
+
 
 import os
 
@@ -42,11 +41,8 @@ class PHIHP(object):
 
         self.test = test
         self.seed = seed
-        
-
 
         self.env = env
-
 
         self.mbrl_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) 
 
@@ -76,7 +72,6 @@ class PHIHP(object):
    
 
 
-
         if self.env.unwrapped.classenv_name == "pendulum" or self.env.unwrapped.classenv_name == "pendulumsw":
             state_dim = self.env.observation_space.shape[0] + 1   
            
@@ -86,12 +81,12 @@ class PHIHP(object):
             state_dim = self.env.observation_space.shape[0] + 2
         else:
             state_dim = self.env.observation_space.shape[0]
+
+
         action_dim = self.env.action_space.shape[0]     
 
         self.rl = TD3(state_dim=state_dim, action_dim=action_dim, actor_hidden_dim=[300,300], critic_hidden_dim=[200,200,200], tau=0.005, policy_noise=0.1) 
         self.rl.exploration_noise = ExplorationNoise(action_dim=action_dim)  
-
-
         
 
     @property
@@ -116,7 +111,15 @@ class PHIHP(object):
 
     def reward_model(self, states, actions, gamma=None):
         """
+        Calculate rewards based on the environment and states and actions.
 
+        Parameters:
+            states (torch.Tensor): State information.
+            actions (torch.Tensor): Action information.
+            gamma (float): Discount factor for future rewards.
+
+        Returns:
+            rewards (torch.Tensor): Computed rewards.
         """
 
         if  self.env.unwrapped.classenv_name == "cartpolesw":
@@ -190,36 +193,44 @@ class PHIHP(object):
         return states[::self.action_repeat, ...]
 
 
-
     def _get_obs(self, state):
+        """
+        Determine the observation representation from the state representation.
+
+        Parameters:
+            state (torch.Tensor): Current state of the environment.
+
+        Returns:
+            obs (torch.Tensor): Augmented state representation.
+        """
 
         if self.env.unwrapped.classenv_name == "pendulum" or self.env.unwrapped.classenv_name == "pendulumsw":
-            aug_state = torch.zeros(state.shape[0],state.shape[1]+1, device=self.device)
-            aug_state[:,0] = torch.cos(state[:,0])
-            aug_state[:,1] = torch.sin(state[:,0])
-            aug_state[:,2] = state[:,1]
-            return aug_state
+            obs = torch.zeros(state.shape[0],state.shape[1]+1, device=self.device)
+            obs[:,0] = torch.cos(state[:,0])
+            obs[:,1] = torch.sin(state[:,0])
+            obs[:,2] = state[:,1]
+            return obs
 
         elif  self.env.unwrapped.classenv_name == "acrobotsw" or self.env.unwrapped.classenv_name == "ctacrobot":
 
 
-            aug_state = torch.zeros(state.shape[0],state.shape[1]+2, device=self.device)
-            aug_state[:,0] = torch.cos(state[:,0])
-            aug_state[:,1] = torch.sin(state[:,0])
-            aug_state[:,2] = torch.cos(state[:,1])
-            aug_state[:,3] = torch.sin(state[:,1])      
-            aug_state[:,4] = state[:,2]
-            aug_state[:,5] = state[:,3]     
-            return aug_state
+            obs = torch.zeros(state.shape[0],state.shape[1]+2, device=self.device)
+            obs[:,0] = torch.cos(state[:,0])
+            obs[:,1] = torch.sin(state[:,0])
+            obs[:,2] = torch.cos(state[:,1])
+            obs[:,3] = torch.sin(state[:,1])      
+            obs[:,4] = state[:,2]
+            obs[:,5] = state[:,3]     
+            return obs
 
         elif self.env.unwrapped.classenv_name == "cartpolesw":
-            aug_state = torch.zeros(state.shape[0],state.shape[1]+1, device=self.device)
-            aug_state[:,0] = state[:,0]
-            aug_state[:,1] = state[:,1]
-            aug_state[:,2] = torch.cos(state[:,2])
-            aug_state[:,3] = torch.sin(state[:,2])      
-            aug_state[:,4] = state[:,3]
-            return aug_state 
+            obs = torch.zeros(state.shape[0],state.shape[1]+1, device=self.device)
+            obs[:,0] = state[:,0]
+            obs[:,1] = state[:,1]
+            obs[:,2] = torch.cos(state[:,2])
+            obs[:,3] = torch.sin(state[:,2])      
+            obs[:,4] = state[:,3]
+            return obs 
         
         else:
             return state
@@ -228,6 +239,8 @@ class PHIHP(object):
   
     
     def plan_free(self, state):
+
+        """ Plan directly with the policy """
 
         if not self.test and len(self.rl.replay_buffer) < 5000:
                 return [self.env.action_space.sample()]
@@ -243,7 +256,6 @@ class PHIHP(object):
         :return: dict of the planned trajectories (times, states and actions)
         """
         action_space = self.env.action_space
-
         action_mean = torch.zeros(self.horizon, 1, action_space.shape[0], device=self.device)
         action_std = torch.ones(self.horizon, 1, action_space.shape[0], device=self.device) * action_space.high.max()
 
@@ -252,19 +264,15 @@ class PHIHP(object):
         state_pi = state.unsqueeze(0) 
 
             
+        #expand the state
         state = state.expand(self.population + self.pi_population, -1) 
         
         # 1. Draw sample sequences of actions from RL policy 
         pi_actions = torch.empty(self.horizon, self.pi_population, action_space.shape[0], device=self.device)
-        
         z = state_pi.repeat(self.pi_population, 1)
-      
-
         with torch.no_grad():
-
             for t in range(self.horizon):
-
-                pi_actions[t] = self.rl.sample_pi_actions(self._get_obs(z)) #torch.from_numpy(self.rl.select_action(z))
+                pi_actions[t] = self.rl.sample_pi_actions(self._get_obs(z)) 
                 z = self.dynamics_model.integrate(z, pi_actions[t].view(1,self.pi_population,action_space.shape[0]))[0]
 
 
@@ -272,11 +280,11 @@ class PHIHP(object):
             actions = action_mean + action_std * torch.randn(self.horizon, self.population, action_space.shape[0], device=self.device)
             actions = torch.clamp(actions, min=action_space.low.min(), max=action_space.high.max())
 
+            # Concatenate actions from the policy and normal distribution
             actions = torch.cat([pi_actions, actions], dim=1)
 
 
             for _ in range(self.iterations):
-                
                 # 2. Unroll trajectories
                 states = self.predict_trajectory(state, actions)
                 # 3. Fit the distribution to the top-k performing sequences
