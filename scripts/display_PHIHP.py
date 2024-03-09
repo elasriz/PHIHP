@@ -59,18 +59,24 @@ def main(raw_args=None):
     args = parser.parse_args(raw_args)
 
 
+    # Create the test environment and observer
     env_test, observer_test = env_factory(args.environment)
 
+    # set the seed to point the saved policy 
     seed = args.seed
 
+    # Create the agent
     agent = agent_factory(env_test, observer_test, args.agent, **vars(args))
 
 
+    # set the path to the saved policy
     rl_path = args.rl_path
 
-    agent.load_dynamics(agent.model_class,args.model_path )
+    # Load the trained dynamics model
+    agent.load_dynamics(agent.model_class,args.model_path)
 
 
+    # Test and save results
     PHIHP_reward = display_PHIHP( agent, env_test, int(args.episodes), rl_path, seed, Path(args.directory))
     print(PHIHP_reward)
 
@@ -80,9 +86,7 @@ def main(raw_args=None):
 
 def display_PHIHP(agent, env_test, episodes, rl_path, seed, dir):
 
-
         frames = []
-
 
         agent.rl.load(rl_path + f"episode{episodes}_seed{seed}")
         episode_rewards = []
@@ -109,15 +113,6 @@ def display_PHIHP(agent, env_test, episodes, rl_path, seed, dir):
         
 
         return ep_reward
-
-
-
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
