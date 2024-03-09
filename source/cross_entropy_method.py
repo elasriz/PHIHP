@@ -76,7 +76,7 @@ class CEMPlanner(object):
     def load_dynamics(self, model_class, model_path, **kwargs):
         kwargs["action_size"] = self.env.action_space.shape[0]
 
-        kwargs["state_size"] = self.observer.observe_array(self.env).size
+        kwargs["state_size"] = self.env.observation_space.shape[0]
         self.dynamics_model = model_factory(model_class, kwargs)
         if self.test:
             path = self.directory / model_path.format(self.dynamics_model.__class__.__name__, self.seed)
@@ -181,7 +181,7 @@ class CEMPlanner(object):
         action_space = self.env.action_space
         action_mean = torch.zeros(self.horizon, 1, action_space.shape[0], device=self.device)
         action_std = torch.ones(self.horizon, 1, action_space.shape[0], device=self.device) * action_space.high.max()
-        env_state, env_copy = None, None
+
 
         state = torch.tensor(self.observer.observe_array(self.env, state), dtype=torch.float).to(self.device)
         state = state.expand(self.population, -1)
@@ -192,8 +192,6 @@ class CEMPlanner(object):
                 actions = torch.clamp(actions, min=action_space.low.min(), max=action_space.high.max())
                 
                 # 2. Unroll trajectories
-
-
                 states = self.predict_trajectory(state, actions)
                 # 3. Fit the distribution to the top-k performing sequences
                 returns = self.reward_model(states, actions).sum(dim=0)
