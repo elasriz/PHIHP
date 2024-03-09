@@ -15,12 +15,14 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 import pandas as pd
 
-from source.utils import str2bool, display_video
+
+
+
+from source.utils import str2bool
+from source.agents import agent_factory
+from source.envs import env_factory
 
 sns.set_style("whitegrid")
-
-from source.agents import agent_factory
-from source.envs import env_factory, plot_trajectories
 import argparse
 
 
@@ -47,7 +49,6 @@ def main(raw_args=None):
     parser.add_argument("--iterations", type=int, help="number of iterations in CEM", default=3)
 
 
-
     # Evaluation arguments
     parser.add_argument("--episodes", type=int, help="number of episodes", default=10)
     parser.add_argument("--model_path", type=str, help="model path", default="out")
@@ -59,18 +60,24 @@ def main(raw_args=None):
     args = parser.parse_args(raw_args)
 
 
+    # Create the test environment and observer
     env_test, observer_test = env_factory(args.environment)
 
+    # set the seed to point the saved policy 
     seed = args.seed
 
+    # Create the agent
     agent = agent_factory(env_test, observer_test, args.agent, **vars(args))
 
 
+    # set the path to the saved policy
     rl_path = args.rl_path
 
+    # Load the trained dynamics model
     agent.load_dynamics(agent.model_class,args.model_path)
 
 
+    # Test and save results
     PHIHP_reward = test_PHIHP( agent, env_test, int(args.episodes), rl_path, seed, Path(args.directory))
     save_data_PHIHP(PHIHP_reward , args.environment, args.agent_name, seed,  Path(args.directory) )
     plot_all(args.environment, directory=Path(args.directory), filenames="PHIHP_data.csv" )
