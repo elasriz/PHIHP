@@ -35,7 +35,7 @@ def display_agent(model_class,seed, alpha, episodes, env,  receding_horizon, hor
          
 if __name__ == "__main__":
 
-            seed = 1     
+            seed = 0     
 
 
         
