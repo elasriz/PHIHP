@@ -139,15 +139,6 @@ class TD3:
 
         return action[0]
 
-
-    def pi(self, state, test=False):
-
-        state = state.clone().detach().unsqueeze(0)
-        with torch.no_grad():
-            action = self.actor(state)#.cpu().squeeze(0).numpy()
-
-        return action #self.exploration_noise.get_action(action)
-
     
     def add_to_buffer(self, state, action, reward, next_state, terminated, done):
         data = (state, action, reward, next_state, terminated, done)
@@ -157,11 +148,6 @@ class TD3:
             self.replay_buffer.pop(0)
             self.replay_buffer.append(data)
 
-    def get_q(self, state, action):
-        action = torch.from_numpy(action).to(self.device)
-        Q1 = self.critic1(state, action)
-        Q2 = self.critic2(state, action)
-        return torch.min(Q1,Q2)
 
     def update(self):
         if len(self.replay_buffer) < 10000:
