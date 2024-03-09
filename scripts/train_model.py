@@ -12,12 +12,12 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 import pandas as pd
 
+# Importing local modules
 from source.utils import str2bool, seed_all
-
-sns.set_style("whitegrid")
-
 from source.agents import agent_factory
 from source.envs import env_factory
+
+sns.set_style("whitegrid")
 
 import argparse
 import time
@@ -52,28 +52,28 @@ def main(raw_args=None):
     parser.add_argument("--noise_tau", type=float, help="noise response time, in number of steps", default=20)
     # other arguments
     parser.add_argument("--timesteps", type=int, help="number of timesteps for training", default=1000)    
-    parser.add_argument("--plot_only", type=str2bool, help="plot without generating", nargs='?', const=True, default=False,)
+
     parser.add_argument("--directory", type=str, help="run directory", default="out")
 
     args = parser.parse_args(raw_args)
 
-    if not args.plot_only:
+
 
         
-        # Create the environment and observer 
-        env, observer = env_factory(args.environment)
-        env_test, observer_test = env_factory(args.environment)
-        # Create the agent
-        agent = agent_factory(env, observer, args.agent, **vars(args))
+    # Create the environment and observer 
+    env, observer = env_factory(args.environment)
+    env_test, observer_test = env_factory(args.environment)
 
-        # Set the random seed for reproducibility
-        seed = seed_all(args.seed, env=env)
+    # Create the agent
+    agent = agent_factory(env, observer, args.agent, **vars(args))
 
-        # Train the agent
-        print(f"Training agent with model {args.model_class}")
-        training_rewards = train(env, observer, env_test, observer_test, agent, args.timesteps, Path(args.directory), seed, args.model_fit_frequency)
+    # Set the random seed for reproducibility
+    seed = seed_all(args.seed, env=env)
 
-        save_data(training_rewards, agent, observer, seed,  Path(args.directory))
+    # Train the agent
+    print(f"Training agent with model {args.model_class}")
+    training_rewards = train(env, observer, env_test, observer_test, agent, args.timesteps, Path(args.directory), seed, args.model_fit_frequency)
+    save_data(training_rewards, agent, observer, seed,  Path(args.directory))
 
     plot_all(args.model_fit_frequency, directory=Path(args.directory), filenames="training_data.csv" )
     plt.close()
@@ -82,7 +82,6 @@ def main(raw_args=None):
 def evaluate(env_test, observer_test, agent, seed, ev_freq = 10):
     """ Evaluate the performance of a trained agent """
 
-    
     
     # Set the agent
     agent.test = True
@@ -115,6 +114,7 @@ def evaluate(env_test, observer_test, agent, seed, ev_freq = 10):
     
     # Plot the last episode 
     plot_last_episode(observer_test, agent)
+    plt.close()
 
     return np.nanmean(episode_rewards)
 
@@ -126,8 +126,6 @@ def train(env, observer, env_test, observer_test, agent, timesteps, directory, s
     #Initialization
     training_rewards = []
     episode = 1
-
-    
     
     # Set the agent
     agent.test = False
@@ -135,13 +133,11 @@ def train(env, observer, env_test, observer_test, agent, timesteps, directory, s
     observer.reset()
     agent.reset()
     
-    # Set a directory for each episode
+    # Set a directory for each episode (iteration)
     agent.directory = directory / f"episode_{episode}/"
     
     state, _ = env.reset(seed=seed)
     done, terminated = False, False
-
-
 
     for timestep in trange(1,timesteps+1):
 
@@ -169,14 +165,9 @@ def train(env, observer, env_test, observer_test, agent, timesteps, directory, s
             agent.reset()
             done, terminated = False, False
 
-            
-
             # Update the directory 
             episode += 1
             agent.directory = directory / f"episode_{episode}/"
-
-        
-        plt.close()
 
     return  training_rewards
 
